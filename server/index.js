@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import eventRoutes from './routes/eventRoutes.js';
 import authRoutes from './routes/authRoutes.js'; 
 import { protect } from './middleware/authMiddleware.js'; 
+import ticketRoutes from './routes/ticketRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -16,6 +17,7 @@ app.get('/', (req, res) => res.send('EventHub API Running'));
 app.use('/api/events', eventRoutes);
 app.use('/api/auth', authRoutes); 
 app.use('/api/protected', protect);
+app.use('/api/tickets', ticketRoutes);
 
 
 const PORT = process.env.PORT || 5000;
