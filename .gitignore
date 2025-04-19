@@ -1,0 +1,16 @@
+# Ignore node_modules everywhere
+**/node_modules
+
+# Ignore all .env files in subfolders
+**/.env
+
+# Log files
+*.log
+
+# Vite build files
+client/dist
+server/dist
+
+# OS stuff
+.DS_Store
+Thumbs.db
