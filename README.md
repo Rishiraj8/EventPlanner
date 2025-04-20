@@ -33,7 +33,7 @@
 
 ## To Do
 
-- [ ] Initialize React project
+- [x] Initialize React project
 - [ ] Connect frontend to backend API
 - [ ] Implement image upload (e.g., Cloudinary or Firebase)
 - [ ] Add AI-powered inputs or auto-fill checkboxes
