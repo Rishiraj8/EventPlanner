@@ -7,7 +7,9 @@
 - JWT Authentication
 - Event Creation, Deletion, and Update
 - Ticket Creation and Booking
-- ![image](https://github.com/user-attachments/assets/05c0f083-f18a-4ee4-994e-a479b601ce6d)
+- RSVP invitation & Respond (mechanism)
+- ![image](https://github.com/user-attachments/assets/16b6c623-d80f-4bc3-b1e2-ab39023bae06)
+
 
 
 ---
