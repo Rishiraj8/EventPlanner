@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../services/api';
-import { useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+// import { useContext } from 'react';               
+// import { AuthContext } from '../../context/AuthContext'; 
+import { useDispatch } from 'react-redux';        
+import { login } from '../../redux/slices/authSlice'; 
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -13,7 +15,9 @@ export default function Register() {
   });
 
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const dispatch = useDispatch(); 
+
+  // const { login } = useContext(AuthContext);   
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,7 +27,8 @@ export default function Register() {
     e.preventDefault();
     try {
       const res = await API.post('/auth/register', formData);
-      login(res.data.user, res.data.token);
+      // login(res.data.user, res.data.token);       
+      dispatch(login({ user: res.data.user, token: res.data.token })); 
       navigate('/dashboard');
     } catch (err) {
       alert(err.response?.data?.message || 'Registration failed');
