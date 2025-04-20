@@ -6,6 +6,7 @@ import eventRoutes from './routes/eventRoutes.js';
 import authRoutes from './routes/authRoutes.js'; 
 import { protect } from './middleware/authMiddleware.js'; 
 import ticketRoutes from './routes/ticketRoutes.js';
+import rsvpRoutes from './routes/rsvpRoutes.js';
 
 dotenv.config();
 const app = express();
@@ -18,7 +19,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/auth', authRoutes); 
 app.use('/api/protected', protect);
 app.use('/api/tickets', ticketRoutes);
-
+app.use('/api/rsvp', rsvpRoutes);
 
 const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
