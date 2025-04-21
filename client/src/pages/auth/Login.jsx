@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import API from '../../services/api';
-// import { AuthContext } from '../../context/AuthContext'; // 
-import { useDispatch } from 'react-redux'; 
+import { useDispatch } from 'react-redux';
 import { login } from '../../redux/slices/authSlice';
 
 export default function Login() {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ email: '', password: '', role: 'guest' });
   const navigate = useNavigate();
-  // const { login } = useContext(AuthContext); 
-  const dispatch = useDispatch(); 
+  const dispatch = useDispatch();
 
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,8 +16,7 @@ export default function Login() {
     e.preventDefault();
     try {
       const res = await API.post('/auth/login', formData);
-      // login(res.data.user, res.data.token); // 
-      dispatch(login({ user: res.data.user, token: res.data.token })); 
+      dispatch(login({ user: res.data.user, token: res.data.token, role: formData.role }));
       navigate('/dashboard');
     } catch (err) {
       alert(err.response?.data?.message || 'Login failed');
@@ -43,12 +40,26 @@ export default function Login() {
           name="password"
           placeholder="Password"
           onChange={handleChange}
-          className="w-full p-2 border rounded mb-4"
+          className="w-full p-2 border rounded mb-3"
           required
         />
+        <select
+          name="role"
+          onChange={handleChange}
+          className="w-full p-2 border rounded mb-4"
+        >
+          <option value="guest">Guest</option>
+          <option value="host">Host</option>
+        </select>
         <button className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
           Login
         </button>
+        <p className="mt-4 text-sm text-center">
+          Don't have an account?{' '}
+          <Link to="/register" className="text-blue-600 hover:underline">
+            Register
+          </Link>
+        </p>
       </form>
     </div>
   );

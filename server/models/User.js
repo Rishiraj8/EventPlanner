@@ -14,11 +14,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  role: {
-    type: String,
-    enum: ['host', 'guest'],
-    default: 'guest'
-  },
   createdEvents: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event'

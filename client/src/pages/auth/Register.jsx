@@ -1,23 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../services/api';
-// import { useContext } from 'react';               
-// import { AuthContext } from '../../context/AuthContext'; 
-import { useDispatch } from 'react-redux';        
-import { login } from '../../redux/slices/authSlice'; 
 
 export default function Register() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    role: 'host',
   });
 
+  const [loading, setLoading] = useState(false); // State for button loading
   const navigate = useNavigate();
-  const dispatch = useDispatch(); 
-
-  // const { login } = useContext(AuthContext);   
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,13 +18,15 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Set loading state
     try {
-      const res = await API.post('/auth/register', formData);
-      // login(res.data.user, res.data.token);       
-      dispatch(login({ user: res.data.user, token: res.data.token })); 
-      navigate('/dashboard');
+      await API.post('/auth/register', formData); // Register the user
+      alert('Registration successful! Please log in.');
+      navigate('/login'); // Redirect to login page
     } catch (err) {
-      alert(err.response?.data?.message || 'Registration failed');
+      alert(err.response?.data?.message || 'Registration failed'); // Show error message
+    } finally {
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -43,6 +38,7 @@ export default function Register() {
           type="text"
           name="name"
           placeholder="Name"
+          value={formData.name}
           onChange={handleChange}
           className="w-full p-2 border rounded mb-3"
           required
@@ -51,6 +47,7 @@ export default function Register() {
           type="email"
           name="email"
           placeholder="Email"
+          value={formData.email}
           onChange={handleChange}
           className="w-full p-2 border rounded mb-3"
           required
@@ -59,21 +56,29 @@ export default function Register() {
           type="password"
           name="password"
           placeholder="Password"
+          value={formData.password}
           onChange={handleChange}
           className="w-full p-2 border rounded mb-3"
           required
         />
-        <select
-          name="role"
-          onChange={handleChange}
-          className="w-full p-2 border rounded mb-4"
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full p-2 rounded text-white ${
+            loading ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+          }`}
         >
-          <option value="host">Host</option>
-          <option value="guest">Guest</option>
-        </select>
-        <button className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-          Register
+          {loading ? 'Registering...' : 'Register'}
         </button>
+        <p className="mt-4 text-sm text-center">
+          Already have an account?{' '}
+          <span
+            onClick={() => navigate('/login')}
+            className="text-blue-600 hover:underline cursor-pointer"
+          >
+            Login
+          </span>
+        </p>
       </form>
     </div>
   );
