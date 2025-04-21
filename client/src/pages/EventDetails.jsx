@@ -6,6 +6,7 @@ export default function EventDetails() {
   const { eventId } = useParams(); // Get eventId from the route
   const navigate = useNavigate();
   const [eventDetails, setEventDetails] = useState(null);
+  const [tickets, setTickets] = useState([]); // State for ticket details
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -16,10 +17,16 @@ export default function EventDetails() {
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
-        const eventRes = await API.get(`/events/${eventId}`); // Fetch event details
+        // Fetch event details
+        const eventRes = await API.get(`/events/${eventId}`);
         setEventDetails(eventRes.data);
 
-        const messagesRes = await API.get(`/messages/${eventId}`); // Fetch messages
+        // Fetch ticket details
+        const ticketsRes = await API.get(`/tickets/event/${eventId}`);
+        setTickets(ticketsRes.data);
+
+        // Fetch messages
+        const messagesRes = await API.get(`/messages/${eventId}`);
         setMessages(messagesRes.data);
       } catch (err) {
         console.error('Error fetching event details:', err);
@@ -48,15 +55,22 @@ export default function EventDetails() {
   const handleRespond = async (status) => {
     setResponding(true);
     try {
-      const response = await API.post('/rsvp/respond', { eventId, status }); // Post RSVP response
-      setResponseStatus(status); // Update the RSVP status
-      alert(response.data.message); // Show success message
+      const response = await API.post('/rsvp/respond', { eventId, status });
+      setResponseStatus(status);
+      alert(response.data.message);
     } catch (err) {
       console.error('Error responding to RSVP:', err);
       alert(err.response?.data?.message || 'Failed to respond to RSVP');
     } finally {
       setResponding(false);
     }
+  };
+
+  const getAvailabilityStatus = (bookedSeats, totalSeats) => {
+    const percentage = (bookedSeats / totalSeats) * 100;
+    if (percentage >= 80) return 'Hurry!';
+    if (percentage >= 50) return 'Limited';
+    return 'Available';
   };
 
   if (loading) {
@@ -127,6 +141,57 @@ export default function EventDetails() {
                 <dd className="mt-1 text-sm text-gray-900">{eventDetails.description}</dd>
               </div>
             </dl>
+          </div>
+        </div>
+
+        {/* Ticket Details */}
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Tickets</h3>
+          </div>
+          <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+            {tickets.length > 0 ? (
+              <ul className="divide-y divide-gray-200">
+                {tickets.map((ticket) => (
+                  <li key={ticket._id} className="py-4">
+                    <div className="flex justify-between">
+                      <div>
+                        <h4 className="text-lg font-medium text-gray-900 capitalize">{ticket.type} Ticket</h4>
+                        <p className="text-sm text-gray-500">Price: ${ticket.price}</p>
+                        <p className="text-sm text-gray-500">
+                          Availability: {ticket.bookedSeats} / {ticket.totalSeats} booked
+                        </p>
+                        <p className="text-sm font-medium text-indigo-600">
+                          Status: {getAvailabilityStatus(ticket.bookedSeats, ticket.totalSeats)}
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No tickets available for this event.</p>
+            )}
+          </div>
+        </div>
+
+        {/* Attendees */}
+        <div className="bg-white shadow overflow-hidden sm:rounded-lg mb-6">
+          <div className="px-4 py-5 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900">Attendees</h3>
+          </div>
+          <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+            {tickets.length > 0 && tickets[0].attendees.length > 0 ? (
+              <ul className="divide-y divide-gray-200">
+                {tickets[0].attendees.map((attendee, index) => (
+                  <li key={index} className="py-3">
+                    <p className="text-sm text-gray-900">Attendee ID: {attendee}</p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No attendees yet.</p>
+            )}
           </div>
         </div>
 
@@ -222,4 +287,4 @@ export default function EventDetails() {
       </main>
     </div>
   );
-} 
+}

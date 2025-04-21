@@ -7,6 +7,7 @@ import EventDetail from './pages/EventDetail';
 import InviteDetail from './pages/InviteDetail';
 import EventDetails from './pages/EventDetails';
 import EditEvent from './pages/EditEvent'; 
+import BookTicket from './pages/BookTicket';
 function App() {
   return (
     <Router>
@@ -22,6 +23,7 @@ function App() {
           <Route path="/guest/events/:eventId" element={<EventDetails />} /> 
           {/* For guests */}
           <Route path="/edit-event/:id" element={<EditEvent />} />
+          <Route path="/events/:eventId/book/:ticketId" element={<BookTicket />} />
           
          
 
