@@ -47,6 +47,7 @@ export default function Dashboard() {
       API.get('/rsvp/me')
         .then((res) => {
           setInvites(res.data);
+          console.log("Dashboard =>",res.data);
           setLoading(false);
         })
         .catch((err) => {
@@ -193,13 +194,13 @@ export default function Dashboard() {
                             </div>
                             {event.tickets.length > 0 && (
                               <div className="flex w-0 flex-1">
-                              <button
-                                onClick={() => navigate(`/events/${event._id}/book/${event.tickets[0]}`)}
-                                className="relative inline-flex w-0 flex-1 items-center justify-center rounded-br-lg border border-transparent py-4 text-sm font-medium text-green-600 hover:text-green-500"
-                              >
-                                Book Ticket
-                              </button>
-                            </div>
+                                <button
+                                  onClick={() => navigate(`/events/${event._id}/book/${event.tickets[0]}`)}
+                                  className="relative inline-flex w-0 flex-1 items-center justify-center rounded-br-lg border border-transparent py-4 text-sm font-medium text-green-600 hover:text-green-500"
+                                >
+                                  Book Ticket
+                                </button>
+                              </div>
                             )}
                           </div>
                         </li>
@@ -238,21 +239,23 @@ export default function Dashboard() {
                   <div className="px-4 py-5 sm:p-6">
                     {invites.length > 0 ? (
                       <ul className="grid gap-6 md:grid-cols-2">
-                        {invites.map((invite) => (
-                          <li
-                            key={invite._id}
-                            className="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white shadow"
-                          >
-                            <div className="flex flex-col flex-1 p-6">
-                              <h3 className="text-lg font-medium text-gray-900">{invite.eventId.title}</h3>
-                              <p className="mt-1 text-sm text-gray-500">{invite.eventId.description}</p>
-                              <p className="mt-2 text-sm text-gray-500">
-                                Date: {new Date(invite.eventId.date).toLocaleDateString()} at {invite.eventId.time}
-                              </p>
-                              <p className="mt-1 text-sm text-gray-500">Location: {invite.eventId.location}</p>
-                              <div className="mt-4">
-                                <span
-                                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium 
+                        {invites
+                          .filter((invite) => invite.eventId) // Filter out invites with null eventId
+                          .map((invite) => (
+                            <li
+                              key={invite._id}
+                              className="col-span-1 flex flex-col divide-y divide-gray-200 rounded-lg bg-white shadow"
+                            >
+                              <div className="flex flex-col flex-1 p-6">
+                                <h3 className="text-lg font-medium text-gray-900">{invite.eventId.title}</h3>
+                                <p className="mt-1 text-sm text-gray-500">{invite.eventId.description}</p>
+                                <p className="mt-2 text-sm text-gray-500">
+                                  Date: {new Date(invite.eventId.date).toLocaleDateString()} at {invite.eventId.time}
+                                </p>
+                                <p className="mt-1 text-sm text-gray-500">Location: {invite.eventId.location}</p>
+                                <div className="mt-4">
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium 
                                   ${
                                     invite.status === 'accepted'
                                       ? 'bg-green-100 text-green-800'
@@ -260,23 +263,23 @@ export default function Dashboard() {
                                       ? 'bg-red-100 text-red-800'
                                       : 'bg-yellow-100 text-yellow-800'
                                   }`}
-                                >
-                                  {invite.status.charAt(0).toUpperCase() + invite.status.slice(1)}
-                                </span>
+                                  >
+                                    {invite.status.charAt(0).toUpperCase() + invite.status.slice(1)}
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex divide-x divide-gray-200">
-                              <div className="flex w-0 flex-1">
-                                <button
-                                  onClick={() => navigate(`/guest/events/${invite.eventId._id}`)}
-                                  className="relative inline-flex w-0 flex-1 items-center justify-center rounded-br-lg border border-transparent py-4 text-sm font-medium text-indigo-600 hover:text-indigo-500"
-                                >
-                                  View Details
-                                </button>
+                              <div className="flex divide-x divide-gray-200">
+                                <div className="flex w-0 flex-1">
+                                  <button
+                                    onClick={() => navigate(`/guest/events/${invite.eventId._id}`)}
+                                    className="relative inline-flex w-0 flex-1 items-center justify-center rounded-br-lg border border-transparent py-4 text-sm font-medium text-indigo-600 hover:text-indigo-500"
+                                  >
+                                    View Details
+                                  </button>
+                                </div>
                               </div>
-                            </div>
-                          </li>
-                        ))}
+                            </li>
+                          ))}
                       </ul>
                     ) : (
                       <div className="text-center py-12">

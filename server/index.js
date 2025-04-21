@@ -19,10 +19,10 @@ app.use(express.json());
 app.get('/', (req, res) => res.send('EventHub API Running'));
 app.use('/api/events', eventRoutes);
 app.use('/api/auth', authRoutes); 
-app.use('/api/protected', protect);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/rsvp', rsvpRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/protected', protect);
 app.use('/api/users', userRoutes);
 
 

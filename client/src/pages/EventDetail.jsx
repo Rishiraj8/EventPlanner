@@ -21,6 +21,11 @@ export default function EventDetail() {
   const [showTicketForm, setShowTicketForm] = useState(false);
   const [userToInvite, setUserToInvite] = useState('');
   const [users, setUsers] = useState([]);
+  
+  // New state for message insights
+  const [insights, setInsights] = useState(null);
+  const [analyzingMessages, setAnalyzingMessages] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -37,6 +42,16 @@ export default function EventDetail() {
         if (user && eventRes.data.host._id === user._id) {
           const rsvpsRes = await API.get(`/rsvp/event/${id}`);
           setRsvps(rsvpsRes.data);
+          
+          // Fetch existing insights if available
+          try {
+            const insightsRes = await API.get(`/messages/insights/${id}`);
+            if (insightsRes.data && insightsRes.data.insights) {
+              setInsights(insightsRes.data);
+            }
+          } catch (error) {
+            console.log('No existing insights found');
+          }
         }
         
         // Fetch messages
@@ -156,6 +171,21 @@ export default function EventDetail() {
       console.error('Error deleting event:', error);
     }
   };
+  
+  // New function to analyze messages
+  const analyzeEventMessages = async () => {
+    setAnalyzingMessages(true);
+    try {
+      const response = await API.post(`/messages/analyze/${id}`);
+      setInsights(response.data);
+      setShowInsights(true);
+    } catch (error) {
+      console.error('Error analyzing messages:', error);
+      alert('Failed to analyze messages. Please try again.');
+    } finally {
+      setAnalyzingMessages(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -249,7 +279,7 @@ export default function EventDetail() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Tickets Section */}
+          {/* Left column - Tickets Section */}
           <div className="lg:col-span-2">
             <div className="bg-white shadow overflow-hidden sm:rounded-lg">
               <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
@@ -270,33 +300,33 @@ export default function EventDetail() {
                   <form onSubmit={createTicket}>
                     <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-3 sm:gap-x-4">
                       <div>
-                      <label htmlFor="type" className="block text-sm font-medium text-gray-700">Type</label>
-<select
-  name="type"
-  id="type"
-  required
-  value={newTicket.type}
-  onChange={handleTicketChange}
-  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
->
-  <option value="" disabled>Select Type</option>
-  <option value="Paid">Paid</option>
-  <option value="Free">Free</option>
-</select>
+                        <label htmlFor="type" className="block text-sm font-medium text-gray-700">Type</label>
+                        <select
+                          name="type"
+                          id="type"
+                          required
+                          value={newTicket.type}
+                          onChange={handleTicketChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        >
+                          <option value="" disabled>Select Type</option>
+                          <option value="Paid">Paid</option>
+                          <option value="Free">Free</option>
+                        </select>
                       </div>
                       <div>
-  <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>
-  <input
-    type="number"
-    name="price"
-    id="price"
-    required
-    min="0"
-    value={newTicket.price}
-    onChange={handleTicketChange}
-    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-  />
-</div>
+                        <label htmlFor="price" className="block text-sm font-medium text-gray-700">Price</label>
+                        <input
+                          type="number"
+                          name="price"
+                          id="price"
+                          required
+                          min="0"
+                          value={newTicket.price}
+                          onChange={handleTicketChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        />
+                      </div>
                       <div>
                         <label htmlFor="totalSeats" className="block text-sm font-medium text-gray-700">Total Seats</label>
                         <input
@@ -331,7 +361,7 @@ export default function EventDetail() {
                       <li key={ticket._id} className="py-4">
                         <div className="flex justify-between">
                           <div>
-                            <h4 className="text-lg font-medium text-gray-900">{ticket.type}</h4>
+                          <h4 className="text-lg font-medium text-gray-900">{ticket.type}</h4>
                             <p className="text-sm text-gray-500">Price: ${ticket.price}</p>
                             <p className="text-sm text-gray-500">
                               Availability: {ticket.bookedSeats} / {ticket.totalSeats} booked
@@ -366,9 +396,20 @@ export default function EventDetail() {
 
             {/* Messages Section */}
             <div className="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
-              <div className="px-4 py-5 sm:px-6">
+              <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
                 <h3 className="text-lg leading-6 font-medium text-gray-900">Event Chat</h3>
+                {isHost && (
+                  <button
+                    onClick={analyzeEventMessages}
+                    disabled={analyzingMessages || messages.length === 0}
+                    className={`inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white 
+                      ${analyzingMessages || messages.length === 0 ? 'bg-gray-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'}`}
+                  >
+                    {analyzingMessages ? 'Analyzing...' : 'Analyze Messages'}
+                  </button>
+                )}
               </div>
+              
               <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
                 <div className="h-64 overflow-y-auto mb-4">
                   {messages.length > 0 ? (
@@ -411,9 +452,85 @@ export default function EventDetail() {
                 </form>
               </div>
             </div>
+            
+            {/* AI Insights Section - shown when available and requested */}
+            {isHost && insights && showInsights && (
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg mt-6">
+                <div className="px-4 py-5 sm:px-6 flex justify-between items-center bg-gradient-to-r from-purple-500 to-indigo-600">
+                  <h3 className="text-lg leading-6 font-medium text-white">Message Analysis</h3>
+                  <button
+                    onClick={() => setShowInsights(!showInsights)}
+                    className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-indigo-800 bg-white hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white"
+                  >
+                    Hide Analysis
+                  </button>
+                </div>
+                
+                <div className="px-4 py-5 sm:p-6 border-t border-gray-200">
+                  {/* Summary */}
+                  <div className="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                    <h4 className="text-md font-semibold text-indigo-900 mb-2">Summary</h4>
+                    <p className="text-sm text-indigo-800">{insights.summary}</p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Last updated: {new Date(insights.lastUpdated).toLocaleString()}
+                    </p>
+                  </div>
+                  
+                  {/* Insights by Category */}
+                  <div className="space-y-6">
+                    {insights.insights.length > 0 ? (
+                      insights.insights.map((insight, index) => (
+                        <div key={index} className="border rounded-lg overflow-hidden">
+                          <div className={`px-4 py-3 ${
+                            insight.priority === 'high' ? 'bg-red-50 border-b border-red-100' :
+                            insight.priority === 'medium' ? 'bg-yellow-50 border-b border-yellow-100' :
+                            'bg-green-50 border-b border-green-100'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-md font-medium">
+                                {insight.title}
+                              </h4>
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                ${insight.priority === 'high' ? 'bg-red-100 text-red-800' :
+                                insight.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-green-100 text-green-800'}`}>
+                                {insight.priority.charAt(0).toUpperCase() + insight.priority.slice(1)} Priority
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">{insight.category}</p>
+                          </div>
+                          
+                          <div className="px-4 py-3">
+                            <p className="text-sm text-gray-800 mb-3">{insight.description}</p>
+                            
+                            {insight.details && insight.details.length > 0 && (
+                              <div className="mt-2">
+                                <h5 className="text-sm font-medium text-gray-700 mb-2">Examples from conversation:</h5>
+                                <ul className="space-y-2">
+                                  {insight.details.map((detail, idx) => (
+                                    <li key={idx} className="text-sm bg-gray-50 p-2 rounded">
+                                      <span className="font-medium">{detail.from}: </span>
+                                      {detail.text}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500">No specific insights were identified.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Sidebar - RSVPs for host */}
+          {/* Right column - Sidebar */}
           <div className="lg:col-span-1">
             {isHost ? (
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
@@ -462,7 +579,7 @@ export default function EventDetail() {
                               <p className="text-xs text-gray-500">{rsvp.guestId.email}</p>
                             </div>
                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                              ${rsvp.status === 'accepted' ? 'bg-green-100 text-blue-800' : 
+                              ${rsvp.status === 'accepted' ? 'bg-green-100 text-green-800' : 
                               rsvp.status === 'declined' ? 'bg-red-100 text-red-800' : 
                               'bg-yellow-100 text-yellow-800'}`}
                             >
@@ -476,6 +593,22 @@ export default function EventDetail() {
                     <p className="text-sm text-gray-500">No RSVPs yet.</p>
                   )}
                 </div>
+                
+                {/* Message Analysis Button and Summary - when insights available but not shown in main content */}
+                {insights && !showInsights && (
+                  <div className="border-t border-gray-200 px-4 py-5 sm:p-6">
+                    <h4 className="text-md font-medium text-gray-900 mb-2">Message Insights</h4>
+                    <p className="text-sm text-gray-600 mb-3">
+                      You have analyzed {messages.length} messages from your event chat.
+                    </p>
+                    <button
+                      onClick={() => setShowInsights(true)}
+                      className="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      View Analysis
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="bg-white shadow overflow-hidden sm:rounded-lg">
