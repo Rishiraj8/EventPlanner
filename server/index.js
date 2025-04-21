@@ -13,7 +13,13 @@ import userRoutes from './routes/userRoutes.js';
 dotenv.config();
 const app = express();
 
-app.use(cors());
+app.use(cors(
+  {
+    origin: "https://event-planner-seven-rose.vercel.app",
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  }
+));
 app.use(express.json());
 
 app.get('/', (req, res) => res.send('EventHub API Running'));
